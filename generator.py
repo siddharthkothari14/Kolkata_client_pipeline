@@ -13,10 +13,10 @@ csv_path = sys.argv[1]
 df = pd.read_csv(csv_path)
 
 user_list = df["ClientID"].unique().tolist()
-timestamp = df["Trade Time"].unique().tolist()
-date = timestamp[0][0].split(" ")[0]
+
 
 def generate_unique_filename(name, timestamp):
+    timestamp = datetime.now().strftime("%d%m%Y")
     base_name = f"{name}_order_slip_{timestamp}.pdf"
     counter = 1
 
