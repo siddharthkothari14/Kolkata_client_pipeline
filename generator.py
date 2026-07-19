@@ -30,7 +30,8 @@ def create_order_slip(pandas_df, name):
     # NOTE: original script referenced an undefined `date` variable here
     # (date[0][0].split(" ")[0]). Using today's date instead, matching the
     # commented-out line that was already in the source.
-    timestamp = datetime.now().strftime("%d%m%Y")
+    timestamp = pandas_df.select("Trade Time").distinct().collect()
+    date = timestamp[0][0].split(" ")[0]
     filename = generate_unique_filename(name, timestamp)
     c = canvas.Canvas(filename, pagesize=A4)
 
@@ -66,7 +67,7 @@ def create_order_slip(pandas_df, name):
 def add_page_content(canvas_obj, page_data, name, timestamp, y_offset):
     # Add header
     canvas_obj.drawString(50, 780, "ORDER SLIP")
-    canvas_obj.drawString(50, 750, f"Date: {timestamp}")
+    canvas_obj.drawString(50, 750, f"Date: {date}")
     canvas_obj.drawString(50, 730, "To,")
     canvas_obj.drawString(50, 710, "Progressive Share Brokers Pvt Ltd")
     canvas_obj.drawString(50, 690, "Place: Kolkata")
@@ -90,9 +91,15 @@ def add_page_content(canvas_obj, page_data, name, timestamp, y_offset):
     canvas_obj.drawString(50, 30, "Signature: _________________")
     canvas_obj.drawString(50, 10, f"Client Name: {name}")
 
+special_users = {
+    "K1N008", "K1N010", "K1B016", "K1S003", "K1S004",
+    "K1R019", "K1S050", "K1S051", "K1B024", "K1I004",
+    "K1V011", "K1M031", "K1S087", "K1S078", "K1S054",
+    "K1N003"
+}
 
 for user in user_list:
-    if user == "K1N003" or user == "K1V011":
+    if user in special_users:
         user_df = df[df["ClientID"] == user].sort_values("Trade Time").reset_index(drop=True)
         user_df["SerialNumber"] = user_df.index + 1  # equivalent to row_number() over orderBy("Trade Time")
 
