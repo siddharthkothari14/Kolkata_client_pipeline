@@ -4,6 +4,7 @@ import tempfile
 import zipfile
 import glob
 import os
+import pandas as pd
 
 st.set_page_config(page_title="PDF Generator", page_icon="📄")
 
