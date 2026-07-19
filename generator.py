@@ -11,6 +11,17 @@ from reportlab.lib import colors
 csv_path = sys.argv[1]
 
 df = pd.read_csv(csv_path)
+# Safely extract the first Trade Time date (equivalent to
+# df.select("Trade Time").distinct().collect()[0][0].split(" ")[0] in Spark)
+trade_vals = df["Trade Time"].dropna().unique()
+if len(trade_vals) > 0:
+    first_trade = trade_vals[0]
+    if isinstance(first_trade, str):
+        date = first_trade.split(" ")[0]
+    else:
+        date = str(first_trade).split(" ")[0]
+else:
+    date = datetime.now().strftime("%d-%m-%Y")
 
 user_list = df["ClientID"].unique().tolist()
 
@@ -30,7 +41,10 @@ def create_order_slip(pandas_df, name):
     # NOTE: original script referenced an undefined `date` variable here
     # (date[0][0].split(" ")[0]). Using today's date instead, matching the
     # commented-out line that was already in the source.
-    timestamp = datetime.now().strftime("%d%m%Y")
+    
+    # use the first Trade Time date from the CSV for the filename
+    timestamp = date
+
     filename = generate_unique_filename(name, timestamp)
     c = canvas.Canvas(filename, pagesize=A4)
 
