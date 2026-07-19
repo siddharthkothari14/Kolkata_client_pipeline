@@ -90,9 +90,15 @@ def add_page_content(canvas_obj, page_data, name, timestamp, y_offset):
     canvas_obj.drawString(50, 30, "Signature: _________________")
     canvas_obj.drawString(50, 10, f"Client Name: {name}")
 
+special_users = {
+    "K1N008", "K1N010", "K1B016", "K1S003", "K1S004",
+    "K1R019", "K1S050", "K1S051", "K1B024", "K1I004",
+    "K1V011", "K1M031", "K1S087", "K1S078", "K1S054",
+    "K1N003"
+}
 
 for user in user_list:
-    if user == "K1N003" or user == "K1V011":
+    if user in special_users:
         user_df = df[df["ClientID"] == user].sort_values("Trade Time").reset_index(drop=True)
         user_df["SerialNumber"] = user_df.index + 1  # equivalent to row_number() over orderBy("Trade Time")
 
