@@ -5,6 +5,7 @@ import zipfile
 import glob
 import os
 import pandas as pd
+from datetime import datetime
 import sys
 
 st.set_page_config(page_title="PDF Generator", page_icon="📄")
@@ -51,20 +52,33 @@ if uploaded_file is not None:
 
             else:
 
-                zip_name = "OrderSlips.zip"
+                # derive date from the uploaded CSV's first Trade Time value
+                try:
+                    df_in = pd.read_csv(csv_path)
+                    trade_vals = df_in["Trade Time"].dropna().unique()
+                    if len(trade_vals) > 0:
+                        first_trade = trade_vals[0]
+                        if isinstance(first_trade, str):
+                            date_str = first_trade.split(" ")[0]
+                        else:
+                            date_str = str(first_trade).split(" ")[0]
+                    else:
+                        date_str = datetime.now().strftime("%d-%m-%Y")
+                except Exception:
+                    date_str = datetime.now().strftime("%d-%m-%Y")
+
+                zip_name = f"OrderSlips_{date_str}.zip"
 
                 with zipfile.ZipFile(zip_name, "w") as z:
-
                     for pdf in pdfs:
                         z.write(pdf)
 
                 st.success(f"{len(pdfs)} PDFs generated!")
 
                 with open(zip_name, "rb") as f:
-
                     st.download_button(
                         "Download ZIP",
                         data=f,
-                        file_name="OrderSlips.zip",
+                        file_name=zip_name,
                         mime="application/zip"
                     )
