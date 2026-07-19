@@ -31,10 +31,10 @@ if uploaded_file is not None:
         with st.spinner("Generating PDFs..."):
 
             result = subprocess.run(
-                ["python", "generator.py", csv_path],
-                capture_output=True,
-                text=True
-            )
+                    [sys.executable, "generator.py", csv_path],
+                    capture_output=True,
+                    text=True
+                )
 
         if result.returncode != 0:
 
