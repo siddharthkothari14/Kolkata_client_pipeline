@@ -13,7 +13,8 @@ csv_path = sys.argv[1]
 df = pd.read_csv(csv_path)
 
 user_list = df["ClientID"].unique().tolist()
-
+timestamp = pandas_df.select("Trade Time").distinct().collect()
+date = timestamp[0][0].split(" ")[0]
 
 def generate_unique_filename(name, timestamp):
     base_name = f"{name}_order_slip_{timestamp}.pdf"
@@ -30,8 +31,7 @@ def create_order_slip(pandas_df, name):
     # NOTE: original script referenced an undefined `date` variable here
     # (date[0][0].split(" ")[0]). Using today's date instead, matching the
     # commented-out line that was already in the source.
-    timestamp = pandas_df.select("Trade Time").distinct().collect()
-    date = timestamp[0][0].split(" ")[0]
+    
     filename = generate_unique_filename(name, timestamp)
     c = canvas.Canvas(filename, pagesize=A4)
 
