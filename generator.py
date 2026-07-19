@@ -13,7 +13,7 @@ csv_path = sys.argv[1]
 df = pd.read_csv(csv_path)
 
 user_list = df["ClientID"].unique().tolist()
-timestamp = pandas_df.select("Trade Time").distinct().collect()
+timestamp = df["Trade Time"].unique().tolist()
 date = timestamp[0][0].split(" ")[0]
 
 def generate_unique_filename(name, timestamp):
