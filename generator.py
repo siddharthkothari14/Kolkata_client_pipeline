@@ -94,7 +94,7 @@ special_users = {
     "K1N008", "K1N010", "K1B016", "K1S003", "K1S004",
     "K1R019", "K1S050", "K1S051", "K1B024", "K1I004",
     "K1V011", "K1M031", "K1S087", "K1S078", "K1S054",
-    "K1N003"
+    "K1N003" ,"K1S041" , "K1G022"
 }
 
 for user in user_list:
