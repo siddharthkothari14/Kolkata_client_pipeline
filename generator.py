@@ -139,7 +139,7 @@ for user in user_list:
 
         grouped = (
             user_df.groupby(
-                ["ClientID", "Symbol", "BuySell", "NorenOrderID", "Qty"],
+                ["ClientName","ClientID", "Symbol", "BuySell", "NorenOrderID", "Qty"],
                 as_index=False,
             ).agg(
                 **{
@@ -154,6 +154,8 @@ for user in user_list:
             .drop(columns=["max(SerialNumber)", "NorenOrderID"])
             .reset_index(drop=True)
         )
+
+        final_final_user_df.insert(1, "ClientID", final_final_user_df["ClientID"].astype(str))
 
         final_final_user_df["Price"] = final_final_user_df.apply(
             lambda row: max(row["collect_list(Price)"])
