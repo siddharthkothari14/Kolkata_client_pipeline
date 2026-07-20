@@ -155,7 +155,7 @@ for user in user_list:
             .reset_index(drop=True)
         )
 
-        final_final_user_df.insert(1, "ClientID", final_final_user_df["ClientID"].astype(str))
+        final_final_user_df["ClientID"] = final_final_user_df["ClientID"].astype(str)
 
         final_final_user_df["Price"] = final_final_user_df.apply(
             lambda row: max(row["collect_list(Price)"])
