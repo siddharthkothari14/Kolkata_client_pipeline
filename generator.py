@@ -56,7 +56,7 @@ def merge_pdf_files(pdf_paths, output_path):
     return output_path
 
 
-def create_order_slip(pandas_df, name):
+def create_order_slip(pandas_df, name, client_name=None):
     # NOTE: original script referenced an undefined `date` variable here
     # (date[0][0].split(" ")[0]). Using today's date instead, matching the
     # commented-out line that was already in the source.
@@ -76,7 +76,7 @@ def create_order_slip(pandas_df, name):
     current_page_data = [headers] + rows[:first_page_rows]
 
     # Add header, table and footer for first page
-    add_page_content(c, current_page_data, name, timestamp, 400)
+    add_page_content(c, current_page_data, name, timestamp, 400, client_name=client_name)
 
     # Handle remaining rows on subsequent pages
     current_row = first_page_rows
@@ -89,14 +89,14 @@ def create_order_slip(pandas_df, name):
         current_page_data = [headers] + rows[current_row:current_row + rows_this_page]
 
         # Add header, table and footer for each subsequent page
-        add_page_content(c, current_page_data, name, timestamp, 50)
+        add_page_content(c, current_page_data, name, timestamp, 50, client_name=client_name)
         current_row += rows_this_page
 
     c.save()
     return filename
 
 
-def add_page_content(canvas_obj, page_data, name, timestamp, y_offset):
+def add_page_content(canvas_obj, page_data, name, timestamp, y_offset, client_name=None):
     # Add header
     canvas_obj.drawString(50, 780, "ORDER SLIP")
     canvas_obj.drawString(50, 750, f"Date: {timestamp}")
@@ -119,9 +119,10 @@ def add_page_content(canvas_obj, page_data, name, timestamp, y_offset):
     table.drawOn(canvas_obj, 40, y_offset + 100)
 
     # Add footer
-    canvas_obj.drawString(50, 50, "Thanking You,")
-    canvas_obj.drawString(50, 30, "Signature: _________________")
-    canvas_obj.drawString(50, 10, f"Client Name: {name}")
+    canvas_obj.drawString(50, 60, "Thanking You,")
+    canvas_obj.drawString(50, 40, "Signature: _________________")
+    canvas_obj.drawString(50, 20, f"Client ID: {name}")
+    canvas_obj.drawString(50, 5, f"Client Name: {client_name or name}")
 
 special_users = {
     "K1N008", "K1N010", "K1B016", "K1S003", "K1S004",
@@ -168,7 +169,13 @@ for user in user_list:
         )
         final_final_user_df = final_final_user_df.drop(columns=["collect_list(Price)"])
 
-        created_file = create_order_slip(final_final_user_df, user)
+        client_name = None
+        if "ClientName" in user_df.columns:
+            client_name_values = user_df["ClientName"].dropna()
+            if len(client_name_values) > 0:
+                client_name = str(client_name_values.iloc[0])
+
+        created_file = create_order_slip(final_final_user_df, user, client_name=client_name)
         generated_files.append(created_file)
 
 if generated_files:
