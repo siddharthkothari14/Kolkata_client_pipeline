@@ -56,6 +56,38 @@ def merge_pdf_files(pdf_paths, output_path):
     return output_path
 
 
+PAGE_WIDTH, PAGE_HEIGHT = A4
+TABLE_LEFT_MARGIN = 40
+TABLE_TOP_Y = 620
+FOOTER_HEIGHT = 80
+
+TABLE_STYLE = TableStyle([
+    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+])
+
+
+def build_table(page_data):
+    table = Table(page_data)
+    table.setStyle(TABLE_STYLE)
+    return table
+
+
+def get_rows_for_page(rows, start_index, headers, available_width, available_height):
+    max_rows = 0
+    for end_index in range(start_index + 1, len(rows) + 1):
+        page_data = [headers] + rows[start_index:end_index]
+        table = build_table(page_data)
+        _, table_height = table.wrap(available_width, available_height)
+        if table_height > available_height:
+            break
+        max_rows = end_index - start_index
+
+    return max_rows if max_rows > 0 else 1
+
+
 def create_order_slip(pandas_df, name, client_name=None):
     # NOTE: original script referenced an undefined `date` variable here
     # (date[0][0].split(" ")[0]). Using today's date instead, matching the
@@ -71,32 +103,27 @@ def create_order_slip(pandas_df, name, client_name=None):
     headers = pandas_df.columns.tolist()
     rows = pandas_df.values.tolist()
 
-    # First page with 6 rows
-    first_page_rows = min(6, len(rows))
-    current_page_data = [headers] + rows[:first_page_rows]
+    available_width = PAGE_WIDTH - 2 * TABLE_LEFT_MARGIN
+    available_height = TABLE_TOP_Y - FOOTER_HEIGHT
 
-    # Add header, table and footer for first page
-    add_page_content(c, current_page_data, name, timestamp, 400, client_name=client_name)
-
-    # Handle remaining rows on subsequent pages
-    current_row = first_page_rows
-    rows_per_page = 23
-
+    current_row = 0
     while current_row < len(rows):
-        c.showPage()
-        remaining_rows = len(rows) - current_row
-        rows_this_page = min(rows_per_page, remaining_rows)
+        rows_this_page = get_rows_for_page(rows, current_row, headers, available_width, available_height)
         current_page_data = [headers] + rows[current_row:current_row + rows_this_page]
 
-        # Add header, table and footer for each subsequent page
-        add_page_content(c, current_page_data, name, timestamp, 50, client_name=client_name)
+        if current_row > 0:
+            c.showPage()
+        add_page_content(c, current_page_data, name, timestamp, client_name=client_name)
         current_row += rows_this_page
+
+    if len(rows) == 0:
+        add_page_content(c, [headers], name, timestamp, client_name=client_name)
 
     c.save()
     return filename
 
 
-def add_page_content(canvas_obj, page_data, name, timestamp, y_offset, client_name=None):
+def add_page_content(canvas_obj, page_data, name, timestamp, client_name=None):
     # Add header
     canvas_obj.drawString(50, 780, "ORDER SLIP")
     canvas_obj.drawString(50, 750, f"Date: {timestamp}")
@@ -106,17 +133,11 @@ def add_page_content(canvas_obj, page_data, name, timestamp, y_offset, client_na
     canvas_obj.drawString(50, 670, "Dear Sir/Madam,")
     canvas_obj.drawString(50, 650, "Kindly place the following Order in my/our Trading Account:-")
 
-    # Create and draw table
-    table = Table(page_data)
-    table.setStyle(TableStyle([
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-    ]))
-
-    table.wrapOn(canvas_obj, 40, y_offset + 100)
-    table.drawOn(canvas_obj, 40, y_offset + 100)
+    # Create and draw table directly below the header to avoid a large gap
+    table = build_table(page_data)
+    available_width = PAGE_WIDTH - 2 * TABLE_LEFT_MARGIN
+    _, table_height = table.wrap(available_width, TABLE_TOP_Y - FOOTER_HEIGHT)
+    table.drawOn(canvas_obj, TABLE_LEFT_MARGIN, TABLE_TOP_Y - table_height)
 
     # Add footer
     canvas_obj.drawString(50, 60, "Thanking You,")
