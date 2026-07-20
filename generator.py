@@ -6,6 +6,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
+from pypdf import PdfReader, PdfWriter
 
 # Place the path of the file required to be used to generate the pdfs
 csv_path = sys.argv[1]
@@ -35,6 +36,24 @@ def generate_unique_filename(name, timestamp):
         counter += 1
 
     return base_name
+
+
+def merge_pdf_files(pdf_paths, output_path):
+    if not pdf_paths:
+        return None
+
+    writer = PdfWriter()
+    for pdf_path in pdf_paths:
+        if not os.path.exists(pdf_path):
+            continue
+        reader = PdfReader(pdf_path)
+        for page in reader.pages:
+            writer.add_page(page)
+
+    with open(output_path, "wb") as output_file:
+        writer.write(output_file)
+
+    return output_path
 
 
 def create_order_slip(pandas_df, name):
@@ -111,6 +130,8 @@ special_users = {
     "K1N003" ,"K1S041" , "K1G022"
 }
 
+generated_files = []
+
 for user in user_list:
     if user in special_users:
         user_df = df[df["ClientID"] == user].sort_values("Trade Time").reset_index(drop=True)
@@ -142,4 +163,9 @@ for user in user_list:
         )
         final_final_user_df = final_final_user_df.drop(columns=["collect_list(Price)"])
 
-        create_order_slip(final_final_user_df, user)
+        created_file = create_order_slip(final_final_user_df, user)
+        generated_files.append(created_file)
+
+if generated_files:
+    consolidated_filename = f"Consolidated_OrderSlips_{date}.pdf"
+    merge_pdf_files(generated_files, consolidated_filename)

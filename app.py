@@ -73,7 +73,12 @@ if uploaded_file is not None:
                     for pdf in pdfs:
                         z.write(pdf)
 
-                st.success(f"{len(pdfs)} PDFs generated!")
+                consolidated_pdf = next(
+                    (pdf for pdf in pdfs if pdf.startswith("Consolidated_OrderSlips_")),
+                    None,
+                )
+
+                st.success(f"{len(pdfs)} PDFs generated, including a consolidated PDF.")
 
                 with open(zip_name, "rb") as f:
                     st.download_button(
@@ -82,3 +87,12 @@ if uploaded_file is not None:
                         file_name=zip_name,
                         mime="application/zip"
                     )
+
+                if consolidated_pdf is not None:
+                    with open(consolidated_pdf, "rb") as f:
+                        st.download_button(
+                            "Download Consolidated PDF",
+                            data=f,
+                            file_name=consolidated_pdf,
+                            mime="application/pdf"
+                        )
