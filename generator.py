@@ -140,10 +140,10 @@ def add_page_content(canvas_obj, page_data, name, timestamp, client_name=None):
     table.drawOn(canvas_obj, TABLE_LEFT_MARGIN, TABLE_TOP_Y - table_height)
 
     # Add footer
-    canvas_obj.drawString(50, 60, "Thanking You,")
-    canvas_obj.drawString(50, 40, "Signature: _________________")
-    canvas_obj.drawString(50, 20, f"Client ID: {name}")
-    canvas_obj.drawString(50, 5, f"Client Name: {client_name or name}")
+    canvas_obj.drawString(50, 80, "Thanking You,")
+    canvas_obj.drawString(50, 60, "Signature: _________________")
+    canvas_obj.drawString(50, 40, f"Client ID: {name}")
+    canvas_obj.drawString(50, 20, f"Client Name: {client_name or name}")
 
 special_users = {
     "K1N008", "K1N010", "K1B016", "K1S003", "K1S004",
